@@ -1,39 +1,43 @@
 import discord
-import responses
+from discord.ext import commands
 
-async def send_message(message, user_message, is_private):
-    try:
-        response = response.handle_response(user_message)
-        await message.author.send(response) if is_private else await message.channel.send(response)
-    except Exception as e:
-        print(e)
+# Create bot instance with a command prefix
+bot = commands.Bot(command_prefix='!')
 
-def run_discord_bot():
-    TOKEN = 'https://discord.com/api/oauth2/authorize?client_id=1155679508179996702&permissions=1084479764544&scope=bot'
+# Event: When the bot is ready
+@bot.event
+async def on_ready():
+    print(f'Bot is online and connected as {bot.user}')
 
-    client = discord.Client()
+# Command: Greet the user
+@bot.command()
+async def hello(ctx):
+    await ctx.send(f'Hello {ctx.author.mention}, how are you?')
 
-    @client.eventasync 
-    def on_ready():
-        print(f'{client.user} is no runing!')
+# Command: Repeat back the user's message
+@bot.command()
+async def repeat(ctx, *, message):
+    await ctx.send(message)
 
-   
-    @client.event
-    async def on_message(message):
-        if message.author == client.user:
-            return
-        
-        username = str(message.author)
-        user_message = str(message.content)
-        channel = str(message.channel)
+# Command: Get server info
+@bot.command()
+async def serverinfo(ctx):
+    server_name = ctx.guild.name
+    member_count = ctx.guild.member_count
+    await ctx.send(f'Server Name: {server_name}\nMember Count: {member_count}')
 
-        print(f"{username} said: '{username}' ({channel})")
+# Command: Roll a dice
+import random
+@bot.command()
+async def roll(ctx):
+    dice_roll = random.randint(1, 6)
+    await ctx.send(f'🎲 You rolled a {dice_roll}!')
 
-        if user_message[0] == '?':
-            user_message = user_message[1:]
-            await send_message(message, user_message, is_private=True)
-        else:
-            await send_message(message, user_message, is_private=False)
+# Error handling: If a command is not found
+@bot.event
+async def on_command_error(ctx, error):
+    if isinstance(error, commands.CommandNotFound):
+        await ctx.send('Sorry, that command does not exist.')
 
-
-    client.run(TOKEN)
+# Run the bot with your token
+bot.run('YOUR_DISCORD_BOT_TOKEN')
